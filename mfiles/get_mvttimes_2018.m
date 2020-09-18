@@ -32,8 +32,35 @@ for i = 1:length(V(1,:))
     if MT.peakvy(i)>0.4
         1;
     end
+    if mean(P(:,i))<0
+        P(:,i) = (-1)*P(:,i);
+    end
 end
 
+
+% Tangential Velocity towards target
+Data.TanV = NaN(size(Data.x));
+Data.TanA = NaN(size(Data.x));
+for i=1:size(P,2) %trial loop
+    D_to_tar = sqrt((Data.x(:,i)-Data.targetposition(i,1)).^2+(Data.y(:,i)-Data.targetposition(i,2)).^2);
+    Ddiff = diff23f5(D_to_tar(~isnan(D_to_tar)),1/200,10);
+    Data.TanV(1:length(Ddiff(:,2)),i) = [Ddiff(:,2)*-1];
+%     [~,max_tanv] = max(abs(Data.TanV(:,i)));
+%     if mean(Data.TanV(1:max_tanv,i))<0
+%         Data.TanV(:,i) = -1*Data.TanV(:,i);
+%     end
+    Data.TanA(1:length(Ddiff(:,2)),i) = Ddiff(:,3)*-1;
+end
+
+% Radial Velocity
+for j=1:size(P,2) %trial loop
+    Data.RadV(1,j)=0;
+    for i=2:size(P,1)  %frame loop
+        Data.RadV(i,j)=(Data.p(i,j)-Data.p(i-1,j))/(Data.time(i,j)-Data.time(i-1,j));
+    end
+end
+Data.RadV=sgolayfilt(Data.RadV,3,21);
+        
 if isempty(vthres)
     for i = 1:length(Y(1,:))
         MT.idxonset(i) = Ev{1,i+1}{1}(strcmp('home',Ev{1,i+1}{3}));
@@ -101,10 +128,12 @@ else
         MT.idxtarget(i) = MT.idxtarget(i)-2;
        
 
-       %%
+        %%
         %Current Distance to target
         D_to_tar = sqrt((Data.x(:,i)-Data.targetposition(i,1)).^2+(Data.y(:,i)-Data.targetposition(i,2)).^2);
-        MT.Dtotardiff(:,i) = diff(D_to_tar);
+    %             Dtotardiff=diff(D_to_tar)/.005;
+%         Ddiff = diff23f5(D_to_tar(~isnan(D_to_tar)),1/200,10);
+        MT.Dtotardiff(:,i) = D_to_tar;
         
         %Reaction time from tangential velocity
         clear V_diff j
@@ -145,9 +174,9 @@ else
         end
         if vsign(i) == sign(nanmean(V(MT.idxonset(i):MT.idxtarget(i),i)))
             1;
-        else
-            vsign(i) =  sign(nanmean(V(MT.idxonset(i):MT.idxtarget(i),i)));
-            fprintf('Flipped Vsign');
+        elseif ~isnan(sign(nanmean(V(MT.idxonset(i):MT.idxtarget(i),i))))
+            vsign(i) = sign(nanmean(V(MT.idxonset(i):MT.idxtarget(i),i)));
+            fprintf('Flipped Vsign\n');
         end
         
         clear V_diff
@@ -178,17 +207,27 @@ else
         end
         
         V_diff(:,i) = diff(Data.TanV(:,i));
-%         if MT.idxonset(i)-MT.robotstates.wait4mvt(i)>150
-%             fprintf('high reaction %g\n',MT.idxonset(i)-MT.robotstates.wait4mvt(i));
-%             figure(1);clf(1);
-%             subplot(2,1,1);
-%             plot(V_diff(:,i));
-%             subplot(2,1,2);
-%             plot(Data.TanV(:,i));
-%             1;
-%             fprintf('Subj %g, cond %g, trial %g, reaction is %g \n',subject,condition,i, MT.idxonset(i));
-%         end
-            
+        
+        %% Reaction time by "Extrapolation" (added by Robbie 12/12/19)
+        P1 = 0.25;
+        P2 = 0.75;
+        targ_onset =  MT.robotstates.wait4mvt(i);
+        t = Data.time(:,i);
+        v = Data.v_sign(:,i);
+        
+        [rxn_extrap, idxonset_extrap, ~] = get_rxnextrap(t, v*vsign(i), targ_onset, P1, P2);
+        MT.rxnextrap(i) = rxn_extrap;
+        MT.idxonset_extrap(i) = idxonset_extrap;
+        
+        % Movement time to 10cm arc (added by Robbie 12/12/19)
+        at10 = find(Data.p(:,i) > 0.100, 1, 'first'); %first index of cursor crossing 10cm
+        mvttime2 = t(at10,1) - t(idxonset_extrap,1);
+        if isempty(mvttime2)
+            MT.mvttime_trap(i) = NaN;
+        else
+            MT.mvttime_trap(i) = mvttime2;
+        end
+        
         %% Correction Index
         
 %         [~,j]=max(V(1:MT.idxtarget(i),i));
@@ -328,11 +367,12 @@ else
         
         MT.idxvthresh_onset(i) = find(V(MT.idxonset(i):MT.idxendpt(i),i)*vsign(i)>0.01,1,'first')+MT.idxonset(i);
 %         MT.idxvthresh_onset(i) = find(V(1:MT.idxendpt(i),i)*vsign(i)>0.01,1,'first')+1;
-        MT.idxvthresh_onset(i) = find(Data.TanV(MT.robotstates.wait4mvt(i):MT.idxendpt(i),i)>0.01,1,'first')+MT.robotstates.wait4mvt(i);
+        MT.idxvthresh_onset(i) = find(abs(Data.TanV(MT.robotstates.wait4mvt(i):MT.idxendpt(i),i))>0.01,1,'first')+MT.robotstates.wait4mvt(i);
         if min(Data.TanV(MT.idxpeakvy(i):MT.idxendpt(i),i))<.01
             MT.idxvthresh_endpt(i) = find(Data.TanV(MT.idxpeakvy(i):MT.idxendpt(i),i)<0.01,1,'first')+MT.idxpeakvy(i);
         else
-            [~,MT.idxvthresh_endpt(i)] = min(Data.TanV(MT.idxpeakvy(i):MT.idxendpt(i),i));
+            [~,MT.idxvthresh_endpt(i)] = min(Data.TanV(MT.idxpeakvy(i):MT.idxmoveback(i),i)); % Use for pilot
+%             [~,MT.idxvthresh_endpt(i)] = min(Data.TanV(MT.idxpeakvy(i):MT.idxendpt(i),i));
             MT.idxvthresh_endpt(i) = MT.idxvthresh_endpt(i) + MT.idxpeakvy(i);
         end
         
@@ -384,6 +424,10 @@ else
         max(Data.v_sign(MT.idxonset(i):MT.idxendpt(i),i)*vsign(i));
         1;
         
+        if MT.idxmoveback(i)<MT.idxonset(i) && MT.idxendpt(i)>MT.idxonset(i)
+            MT.idxmoveback(i) = MT.idxendpt(i);
+        end
+        
         if MT.idxmoveback(i)<MT.idxonset(i)
             1;            
             figure(1);clf(1);subplot(3,2,1);
@@ -430,7 +474,7 @@ else
             plot(Data.v(:,i));
             fprintf('Movement Time: %f \n',MT.mvttime(i));
             fprintf('Pathl: %f \n',pathl);
-            
+            1;
         end
     end
     fprintf('React<20 frames = %g, react0 = %g\n',low_react,j9);

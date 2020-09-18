@@ -54,7 +54,7 @@ DataSelect=DataSet(3);
 
 %Choose if with fml or not
 famil={'withFML' 'noFML'};
-familSelect=famil(2);
+familSelect=famil(1);
 
 if strcmp(DataSetsSelect,'Pilot')
     filename = char(strcat('Pilot_Data-',DataSelect,familSelect));
@@ -389,7 +389,12 @@ for subj = 1:nsubj
         
         % Get robot events
         Ev{c,subj} = get_robotevents(T{c,subj}.framedata, ropts.statenames, ropts.avstatenames);
-
+        
+        if strcmp(DataSetsSelect,'Pilot') && c == 1 && subj == 15
+            T{c,subj}.config.totaltrials = 68;
+            num_trials{c,subj} = 68;
+        end
+        
         % Data is structure of matrices concatenated from T.framedata
         % Then remove framedata field from T
         [Data{c,subj}, Ev{c,subj}] = analyze_robot_basic(T{c,subj}, Ev{c,subj}, ropts,c,subj);
@@ -401,9 +406,6 @@ for subj = 1:nsubj
         % Get velocity by differentiating position (Data.v is bumpy)
         Data{c,subj} = get_vsign(Data{c,subj},num_trials{c,subj});
         
-        
-    end
-    for c = 1:nc
         % Get movement times
         [MT{c,subj},Data{c,subj}] = get_mvttimes_2018(Data{c,subj},...
             Data{c,subj}.v_sign, Data{c,subj}.p, Ev{c,subj}, vthres(c), endthres(c), tarthres(c),c,subj);

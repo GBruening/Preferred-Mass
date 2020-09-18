@@ -28,6 +28,7 @@ PeakSpeed.all = zeros(nc,nsubj);
 
 
 for subj = 1:nsubj
+% for subj = 15:15
     subjid = subjarray{subjtoload(subj)};
     %Curve related metrics
 
@@ -35,6 +36,7 @@ for subj = 1:nsubj
 
 %    nTrials_speed = 200; % look at last X trials only; for all, popts.totaltrials
     for c=1:nc
+%     for c=1:1
         tic
         if (strcmp(DataSelect,DataSet(1)) | strcmp(DataSelect,DataSet(2)))
             if (strcmp(subjid,'PLO') & strcmp(condition{c,subj},'fml'));
@@ -49,8 +51,8 @@ for subj = 1:nsubj
         
         if strcmp(DataSetsSelect,'Pilot')
             if strcmp(condition{c,subj},'fml')
-                popts.totaltrials=100;
-                nTrials_speed=100;
+                popts.totaltrials=300;
+                nTrials_speed=300;
                 Data{c,subj}.stateframes=zeros([8,100]);
             elseif ~strcmp(condition{c,subj},'fml')
                 popts.totaltrials=200;
@@ -69,8 +71,8 @@ for subj = 1:nsubj
             end
         elseif strcmp(DataSetsSelect,'ArcT')
             if strcmp(condition{c,subj},'fml')
-                popts.totaltrials=200;
-                nTrials_speed=150;
+                popts.totaltrials=400;
+                nTrials_speed=350;
                 Data{c,subj}.stateframes=zeros([8,400]);
             elseif ~strcmp(condition{c,subj},'fml')
                 popts.totaltrials=200;
@@ -78,6 +80,13 @@ for subj = 1:nsubj
                 Data{c,subj}.stateframes=zeros([8,200]);
             end
         end
+        
+        
+        if strcmp(DataSetsSelect,'Pilot') && strcmp(condition{c,subj},'fml') && subj == 15
+            popts.totaltrials=68;
+            nTrials_speed=68;
+        end
+        
         tarone_count=1;
         tartwo_count=1;
         tarthr_count=1;
@@ -87,7 +96,8 @@ for subj = 1:nsubj
         
         for i = 1:popts.totaltrials
             %Target Number
-            x1 = 0.070710725027900; x2 = -0.070710537390700; y1 = 0.070710818846400; y2 = -0.070710631209400;
+            x1 = 0.070710725027900; x2 = -0.070710537390700;
+            y1 = 0.070710818846400; y2 = -0.070710631209400;
             if abs(Data{c,subj}.targetposition_act(i,2)-y1)<.00001
                 if abs(Data{c,subj}.targetposition_act(i,1)-x1)<.00001
                     Data{c,subj}.targetnumber(tr_count)=1;
@@ -102,7 +112,11 @@ for subj = 1:nsubj
                 end
             end
             if Data{c,subj}.targetposition_act(i,1)==0
-                Data{c,subj}.targetnumber(tr_count) = Data{c,subj}.targetnumber(tr_count-1)+4;
+                if i > 1
+                    Data{c,subj}.targetnumber(tr_count) = Data{c,subj}.targetnumber(tr_count-1)+4;
+                else
+                    Data{c,subj}.targetnumber(tr_count) = 0;
+                end
             end
             
             %Movement Duration
@@ -432,7 +446,7 @@ for subj = 1:nsubj
         fprintf('Subject %1.0f %s Condition %s Processed\n',subj,subjid,condition{c,subj});
          
         toc
-        mean(Data{c,subj}.timings.reacttoendpt)
+%         mean(Data{c,subj}.timings.reacttoendpt)
     end
     if strcmp(DataSetsSelect,DataSets(1)) %If Pilot data
        if nc==6
@@ -446,17 +460,17 @@ for subj = 1:nsubj
 
              PrefSpeed.norm.totarget(:,subj) = PrefSpeed.totarget(:,subj) / PrefSpeed.totarget(2,subj);
              PrefSpeed.norm.tomoveback(:,subj) = PrefSpeed.tomoveback(:,subj) / PrefSpeed.tomoveback(2,subj);
-             PrefSpeed.norm.back(:,subj) = PrefSpeed.back(:,subj) / PrefSpeed.back(2,subj);
+%              PrefSpeed.norm.back(:,subj) = PrefSpeed.back(:,subj) / PrefSpeed.back(2,subj);
              PrefSpeed.norm.all(:,subj) = PrefSpeed.all(:,subj) / PrefSpeed.all(2,subj);
 
              PeakSpeed.norm.totarget(:,subj) = PeakSpeed.totarget(:,subj) / PeakSpeed.totarget(2,subj);
              PeakSpeed.norm.tomoveback(:,subj) = PeakSpeed.tomoveback(:,subj) / PeakSpeed.tomoveback(2,subj);
-             PeakSpeed.norm.back(:,subj) = PeakSpeed.back(:,subj) / PeakSpeed.back(2,subj);
+%              PeakSpeed.norm.back(:,subj) = PeakSpeed.back(:,subj) / PeakSpeed.back(2,subj);
              PeakSpeed.norm.all(:,subj) = PeakSpeed.all(:,subj) / PeakSpeed.all(2,subj);
 
              PathL.norm.totarget(:,subj) = PathL.totarget(:,subj) / PathL.totarget(2,subj);
              PathL.norm.tomoveback(:,subj) = PathL.tomoveback(:,subj) / PathL.tomoveback(2,subj);
-             PathL.norm.back(:,subj) = PathL.back(:,subj) / PathL.back(2,subj);
+%              PathL.norm.back(:,subj) = PathL.back(:,subj) / PathL.back(2,subj);
              PathL.norm.all(:,subj) = PathL.all(:,subj) / PathL.all(2,subj);
 
              Reaction.norm.robstate(:,subj)=Reaction.robstate(:,subj)./Reaction.robstate(2,subj);
@@ -512,7 +526,7 @@ for subj = 1:nsubj
         
          PrefSpeed.norm.totarget(:,subj) = PrefSpeed.totarget(:,subj) / PrefSpeed.totarget(2,subj);
          PrefSpeed.norm.tomoveback(:,subj) = PrefSpeed.tomoveback(:,subj) / PrefSpeed.tomoveback(2,subj);
-         PrefSpeed.norm.back(:,subj) = PrefSpeed.back(:,subj) / PrefSpeed.back(2,subj);
+%          PrefSpeed.norm.back(:,subj) = PrefSpeed.back(:,subj) / PrefSpeed.back(2,subj);
          PrefSpeed.norm.all(:,subj) = PrefSpeed.all(:,subj) / PrefSpeed.all(2,subj);
          
          PeakSpeed.norm.totarget(:,subj) = PeakSpeed.totarget(:,subj) / PeakSpeed.totarget(2,subj);
@@ -574,8 +588,8 @@ cd(expfolder);
 excel_file = strcat(filename,'.csv');
 Write_Data
 filename = strcat(filename);%,'_test')
-cd('D:\Users\Gary\Google Drive\Preferred Mass\Data');
-fprintf('Saving file as: %s \n',filename);
-save(filename,'-v7.3');
-fprintf('File saved as: %s \n',filename);
-fprintf('Saved in: %s\n',expfolder);
+% cd('D:\Users\Gary\Google Drive\Preferred Mass\Data');
+% fprintf('Saving file as: %s \n',filename);
+% save(filename,'-v7.3');
+% fprintf('File saved as: %s \n',filename);
+% fprintf('Saved in: %s\n',expfolder);

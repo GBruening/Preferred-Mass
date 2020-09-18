@@ -11,18 +11,29 @@ Data.targetposition_act=zeros(T.config.totaltrials,3);
 Data.startposition=zeros(T.config.totaltrials,3);
 Data.targetposition=zeros(T.config.totaltrials,3);
 
-for i=1:T.config.totaltrials    
-    % frame in wait4mvt
-    idx = min(Ev{1,i+1}{1}(strcmp('home',Ev{1,i+1}{3}))+2); 
-    
-    % actual location in tcl space
-    Data.startposition_act(i,1) = T.framedata(i).homex(idx)*0.01; % in m
-    Data.startposition_act(i,2) = T.framedata(i).homey(idx)*0.01; % in m
-    
-    Data.targetposition_act(i,1) = T.framedata(i).targetx(idx)*0.01; % in m
-    Data.targetposition_act(i,2) = T.framedata(i).targety(idx)*0.01; % in m
-    if Data.targetposition_act(i,1)==0
-        1;
+if size(Ev,2) == T.config.totaltrials
+    for i=1:T.config.totaltrials    
+        % frame in wait4mvt
+        idx = min(Ev{1,i+1}{1}(strcmp('home',Ev{1,i+1}{3}))+2); 
+
+        % actual location in tcl space
+        Data.startposition_act(i,1) = T.framedata(i).homex(idx)*0.01; % in m
+        Data.startposition_act(i,2) = T.framedata(i).homey(idx)*0.01; % in m
+
+        Data.targetposition_act(i,1) = T.framedata(i).targetx(idx)*0.01; % in m
+        Data.targetposition_act(i,2) = T.framedata(i).targety(idx)*0.01; % in m
+    end
+else
+    for i=1:T.config.totaltrials    
+        % frame in wait4mvt
+        idx = 5; 
+
+        % actual location in tcl space
+        Data.startposition_act(i,1) = T.framedata(i).homex(idx)*0.01; % in m
+        Data.startposition_act(i,2) = T.framedata(i).homey(idx)*0.01; % in m
+
+        Data.targetposition_act(i,1) = T.framedata(i).targetx(idx)*0.01; % in m
+        Data.targetposition_act(i,2) = T.framedata(i).targety(idx)*0.01; % in m
     end
 end
 

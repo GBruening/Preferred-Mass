@@ -5,7 +5,13 @@
         Px = Data.x; Py = Data.y;
         Vx = diff(Px)/0.005; Vy = diff(Py)/0.005;
         
-        P = (Px.^2 + Py.^2).^0.5;
+        P = sqrt((Px.^2 + Py.^2));
+        for i=1:num_trials
+            if mean(P(:,i))<0
+                figure(1);clf(1);
+                plot(P(:,i));
+            end
+        end
         Data.v = nan(size(P));
         time = Data.time;
         Data.v(1,:) = zeros(1,num_trials);
@@ -26,27 +32,23 @@
         end
         Data.v = (Data.vx.^2+Data.vy.^2).^0.5;
         
-        % Tangential Velocity towards target
-        Data.TanV = NaN(size(Data.x));
-        Data.TanA = NaN(size(Data.x));
-        for i=1:size(P,2) %trial loop
-            D_to_tar = sqrt((Data.x(:,i)-Data.targetposition(i,1)).^2+(Data.y(:,i)-Data.targetposition(i,2)).^2);
-%             Dtotardiff=diff(D_to_tar)/.005;
-            Ddiff = diff23f5(D_to_tar(~isnan(D_to_tar)),1/200,10);
-            Dtotardiff = Ddiff(:,2);
-            numnan = sum(~isnan(Dtotardiff));
-            Data.TanV(1:length(Dtotardiff),i) = [Dtotardiff*-1];
-            Data.TanA(1:length(Dtotardiff),i) = Ddiff(:,3)*-1;
-        end
-        
-        % Radial Velocity
-        for j=1:size(P,2) %trial loop
-            Data.RadV(1,j)=0;
-            for i=2:size(P,1)  %frame loop
-                Data.RadV(i,j)=(Data.p(i,j)-Data.p(i-1,j))/(Data.time(i,j)-Data.time(i-1,j));
-            end
-        end
-        Data.RadV=sgolayfilt(Data.RadV,3,21);
+        % Moved to Getmvttimes 9/15/2020 GB
+%         % Tangential Velocity towards target
+%         Data.TanV = NaN(size(Data.x));
+%         Data.TanA = NaN(size(Data.x));
+%         for i=1:size(P,2) %trial loop
+%             D_to_tar = sqrt((Data.x(:,i)-Data.targetposition(i,1)).^2+(Data.y(:,i)-Data.targetposition(i,2)).^2);
+%         %             Dtotardiff=diff(D_to_tar)/.005;
+%             Ddiff = diff23f5(D_to_tar(~isnan(D_to_tar)),1/200,10);
+%             Dtotardiff = Ddiff(:,2);
+%             numnan = sum(~isnan(Dtotardiff));
+%             Data.TanV(1:length(Dtotardiff),i) = [Dtotardiff*-1];
+%             [~,max_tanv] = max(abs(Data.TanV(:,i)));
+%         %     if mean(Data.TanV(1:max_tanv,i))<0
+%         %         Data.TanV(:,i) = -1*Data.TanV(:,i);
+%         %     end
+%             Data.TanA(1:length(Dtotardiff),i) = Ddiff(:,3)*-1;
+%         end
 
 
 end

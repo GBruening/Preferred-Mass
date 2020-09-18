@@ -21,7 +21,7 @@ function        vout = diff23f5( v, ts, fc );
 [B_coef_filter, A_coef_filter] = butter(4,2.0*ts*fc );
 for     i=1:n,
    v1(:,i) = filtfilt( B_coef_filter, A_coef_filter, v(:,i) );
-end;
+end
 
 %%% First five-point differentiation
 vdot(3:m-2,:) = (v1(1:m-4,:)-8*v1(2:m-3,:)+8*v1(4:m-1,:)-v1(5:m,:))/(12.0*ts);
@@ -35,7 +35,5 @@ vddot(1,:) = vddot(3,:);
 vddot(m-1,:)=vddot(m-2,:);
 vddot(m,:) = vddot(m-1,:);
 
-
 vout = [ v1 vdot vddot ];
 size(vout);
-

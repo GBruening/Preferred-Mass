@@ -2,8 +2,10 @@
 
 if exist('C:\Users\Gary\Documents\School Notes\Grad School\','dir')
     projpath = 'C:\Users\Gary\Documents\School Notes\Grad School\';
-elseif exist('F:\Documents\School notes\Grad School\','dir');
-    projpath = 'F:\Documents\School notes\Grad School\';
+elseif exist('D:\Users\Gary\Google Drive\')
+    projpath = 'D:\Users\Gary\Google Drive\';
+elseif exist('F:\Google Drive\Preferred Mass\')
+    projpath = 'F:\Google Drive\Preferred Mass\';
 end
 expname = 'Mass';
 % if strcmp(DataSetsSelect,'Pilot')
@@ -12,7 +14,8 @@ expname = 'Mass';
     datafolder = [projpath expname filesep 'Data'];
 % end
 
-projpath = 'D:\Users\Gary\Google Drive\';
+% projpath = 'D:\Users\Gary\Google Drive\';
+projpath = 'F:\Google Drive\';
 
 expname = 'Preferred Mass';
 
@@ -122,6 +125,8 @@ A={'subj'...
     ',idxonsetErik'...
     ',onsetErik_vel'...
     ',onsetvthresh_vel'...
+    ',idxonset_extrap'...
+    ',onsettrap_vel'...
     };
 
 
@@ -139,12 +144,22 @@ for subj=1:nsubj
     tr_count=1;
         
     for c=1:(nc) %Check if using FML or not
+        
+        if (strcmp(DataSelect,DataSet(1)) | strcmp(DataSelect,DataSet(2)))
+            if (strcmp(subjid,'PLO') & strcmp(condition{c,subj},'fml'));
+                continue
+            end
+        elseif strcmp(DataSelect,DataSet(3))
+            if (strcmp(subjid,'PLO') & strcmp(condition{c,subj},'fml'));
+                continue
+            end
+        end
 
         condition_cur=char(conditions{subj}(c));
 %         condition_cur=char(conditions{c});
 
         if c>=2
-            condition_prev=char(conditions{subj}(c));
+            condition_prev=char(conditions{subj}(c-1));
         end
 
         if strcmp(condition_cur,'fml')
@@ -174,6 +189,7 @@ for subj=1:nsubj
         if strcmp(condition_prev,'fml')
             condition_cur=0;
             condition_cur1=0;
+            condition_prev = 0;
         elseif strcmp(condition_prev,'0')
             condition_prev=0;
         elseif strcmp(condition_prev,'3')
@@ -267,6 +283,8 @@ for subj=1:nsubj
                 ,MT{c,subj}.idxonsetErik(i)...
                 ,Data{c,subj}.TanV(MT{c,subj}.idxonsetErik(i),i)...
                 ,Data{c,subj}.TanV(MT{c,subj}.idxvthresh_onset(i),i)...
+                ,MT{c,subj}.idxonset_extrap(i)...
+                ,Data{c,subj}.TanV(MT{c,subj}.idxonset_extrap(i),i)...               
                 };
 %                     MT{c,subj}.idxtarget2(i)-MT{c,subj}.idxonset(i) Data{c,subj}.v(MT{c,subj}.idxtarget2(i),i)...
 %                     MT{c,subj}.idxtarget3(i)-MT{c,subj}.idxonset(i) Data{c,subj}.v(MT{c,subj}.idxtarget3(i),i)...
